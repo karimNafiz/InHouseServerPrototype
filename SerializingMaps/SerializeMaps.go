@@ -76,7 +76,7 @@ func AppendIntBytesMain(byteSlice *[]byte, value []byte, intSize uint8) {
 }
 
 // Main function to test the implementation
-func main() {
+func main1() {
 	msg := NewCustomMessage()
 
 	// Add key-value pairs
