@@ -4,39 +4,29 @@ import (
 	"fmt"
 	"hash/fnv"
 	"my_project/in_house_linked_list"
+	serializable "my_project/in_house_serializable"
 )
 
-// ✅ Capacity constant
 const HashMapCapacity int = 16
 
-// ✅ KeyValPair struct (Key must be exported)
-type KeyValPair[T any] struct {
-	Key   string // ✅ Now accessible outside
-	Value T
-}
-
-// ✅ HashMap struct
-type HashMap[T any] struct {
+type HashMap[T serializable.Serializable] struct {
 	capacity int
-	hashMap  []in_house_linked_list.LinkedList[KeyValPair[T]]
+	hashMap  []in_house_linked_list.LinkedList[serializable.KeyValPair[T]]
 }
 
-// ✅ CreateHashMap function (properly initializes linked lists)
-func CreateHashMap[T any]() *HashMap[T] {
+func CreateHashMap[T serializable.Serializable]() *HashMap[T] {
 	hashMap := &HashMap[T]{
 		capacity: HashMapCapacity,
-		hashMap:  make([]in_house_linked_list.LinkedList[KeyValPair[T]], HashMapCapacity),
+		hashMap:  make([]in_house_linked_list.LinkedList[serializable.KeyValPair[T]], HashMapCapacity),
 	}
 
-	// ✅ Initialize each linked list in the slice
 	for i := range hashMap.hashMap {
-		hashMap.hashMap[i] = *in_house_linked_list.CreateLinkedList[KeyValPair[T]]()
+		hashMap.hashMap[i] = *in_house_linked_list.CreateLinkedList[serializable.KeyValPair[T]]()
 	}
 
 	return hashMap
 }
 
-// ✅ Add function (correctly inserts into the hash map)
 func (hashMap *HashMap[T]) Add(key string, value T) {
 	hash := GetHash(key, hashMap.capacity)
 	hashMap.hashMap[hash].AppendHead(KeyValPair[T]{
@@ -80,10 +70,9 @@ func GetHelper[T any](linkedList in_house_linked_list.LinkedList[KeyValPair[T]],
 	return zeroValue, false     // ❌ Key not found
 }
 
-// ✅ GetHash function (generates a consistent hash for the given key)
-func GetHash(key string, cap int) int {
+func GetHash(key serializable.Str, cap int) int {
 	h := fnv.New32a()
-	h.Write([]byte(key))
+	h.Write([]byte(key.Value))
 	return int(h.Sum32()) % cap
 }
 
