@@ -12,6 +12,7 @@ const StringValueType = 2
 
 type Serializable interface {
 	Serialize(*[]byte)
+	GetValue() any
 }
 
 type MetaData struct {
@@ -43,6 +44,10 @@ func (wrapper Integer32) Serialize(byteArr *[]byte) {
 	*byteArr = append(*byteArr, tempArr[:]...)
 }
 
+func (wrapper Integer32) GetValue() any {
+	return wrapper.Value
+}
+
 type Str struct {
 	Value    string
 	MetaData MetaData
@@ -69,12 +74,32 @@ func (wrapper Str) Serialize(byteArray *[]byte) {
 	*byteArray = append(*byteArray, []byte(wrapper.Value)...)
 }
 
-type KeyValPair[T Serializable] struct {
-	Key   Str
-	Value T
+func (wrapper Str) GetValue() any {
+	return wrapper.Value
 }
 
-func (key_val_pair KeyValPair[T]) Serialize(byteArray *[]byte) {
+type KeyValPair struct {
+	Key   Str
+	Value Serializable
+}
+
+func (key_val_pair KeyValPair) Serialize(byteArray *[]byte) {
 	key_val_pair.Key.Serialize(byteArray)
 	key_val_pair.Value.Serialize(byteArray)
+}
+
+func (wrapper KeyValPair) GetValue() any {
+	return wrapper.Value.GetValue()
+}
+
+func CreateSerializableType(value any) (bool, Serializable) {
+	switch v := value.(type) {
+	case string:
+		return true, String(v)
+	case int:
+		return true, Int32(v)
+	default:
+		fmt.Println("Unsupported type")
+		return false, nil // ✅ Explicitly return nil
+	}
 }

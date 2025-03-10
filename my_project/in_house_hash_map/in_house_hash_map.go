@@ -9,88 +9,100 @@ import (
 
 const HashMapCapacity int = 16
 
-type HashMap[T serializable.Serializable] struct {
+type HashMap struct {
 	capacity int
-	hashMap  []in_house_linked_list.LinkedList[serializable.KeyValPair[T]]
+	hashMap  []in_house_linked_list.LinkedList[serializable.KeyValPair]
 }
 
-func CreateHashMap[T serializable.Serializable]() *HashMap[T] {
-	hashMap := &HashMap[T]{
+func CreateHashMap() *HashMap {
+	hashMap := &HashMap{
 		capacity: HashMapCapacity,
-		hashMap:  make([]in_house_linked_list.LinkedList[serializable.KeyValPair[T]], HashMapCapacity),
+		hashMap:  make([]in_house_linked_list.LinkedList[serializable.KeyValPair], HashMapCapacity),
 	}
 
 	for i := range hashMap.hashMap {
-		hashMap.hashMap[i] = *in_house_linked_list.CreateLinkedList[serializable.KeyValPair[T]]()
+		hashMap.hashMap[i] = *in_house_linked_list.CreateLinkedList[serializable.KeyValPair]()
 	}
 
 	return hashMap
 }
 
-func (hashMap *HashMap[T]) Add(key string, value T) {
-	hash := GetHash(key, hashMap.capacity)
-	hashMap.hashMap[hash].AppendHead(KeyValPair[T]{
-		Key:   key,
-		Value: value,
+func (hashMap *HashMap) Add(key string, value any) bool {
+	var key_str serializable.Str = serializable.String(key) // we know key is a string so we directly create the wrapper type Str
+	ok, val_serializable := serializable.CreateSerializableType(value)
+	if !ok {
+		return false
+	}
+	hash := GetHashStr(key_str, hashMap.capacity)
+	hashMap.hashMap[hash].AppendHead(serializable.KeyValPair{
+		Key:   key_str,
+		Value: val_serializable,
 	})
+	return true
 }
 
-// ✅ Get function (fetches value by key)
-func (hashMap *HashMap[T]) Get(key string) (bool, T) {
+func (hashMap *HashMap) Get(key string) (bool, any) {
 	hash := GetHash(key, hashMap.capacity)
 
 	if hashMap.hashMap[hash].IsEmpty() {
-		var defaultValue T
+		var defaultValue serializable.Serializable
 		return false, defaultValue
 	}
 
-	// ✅ Pass linked list by value (not pointer)
-	keyValPair, found := GetHelper[T](hashMap.hashMap[hash], key)
+	found, keyValPair := get_element_linked_list(hashMap.hashMap[hash], key)
 
 	if found {
-		return true, keyValPair.Value // ✅ Return the found value
+		return true, keyValPair.Value.GetValue()
 	}
 
-	var defaultValue T
-	return false, defaultValue // ❌ Key not found, return zero-value
+	return false, keyValPair
 }
 
-// ✅ GetHelper function (iterates through linked list to find key)
-func GetHelper[T any](linkedList in_house_linked_list.LinkedList[KeyValPair[T]], key string) (KeyValPair[T], bool) {
-	current := linkedList.Head.Next // ✅ Start from first actual node
+func get_element_linked_list(linkedList in_house_linked_list.LinkedList[serializable.KeyValPair], key string) (bool, serializable.KeyValPair) {
+	current := linkedList.Head.Next
 
-	for current != linkedList.Tail { // ✅ Traverse the list
-		if current.Value.Key == key { // ✅ Correctly access Key (capitalized)
-			return current.Value, true // ✅ Found the key
+	for current != linkedList.Tail {
+		if current.Value.Key.GetValue() == key { // must provide getters and setters remember to implement those changes
+			return true, current.Value
 		}
 		current = current.Next
 	}
 
-	var zeroValue KeyValPair[T] // ✅ Return empty value
-	return zeroValue, false     // ❌ Key not found
+	var zero_value serializable.KeyValPair
+	return false, zero_value
 }
 
-func GetHash(key serializable.Str, cap int) int {
+func GetHashStr(key serializable.Str, cap int) int {
+	return GetHash(key.Value, cap)
+}
+
+func GetHash(key string, cap int) int {
 	h := fnv.New32a()
-	h.Write([]byte(key.Value))
+	h.Write([]byte(key))
 	return int(h.Sum32()) % cap
 }
 
 func Getway() {
-	testHashMap := CreateHashMap[interface{}]()
-	testHashMap.Add("key1", 42)
-	testHashMap.Add("key1", "hello world 2")
-	testHashMap.Add("key2", 5.67)
-	testHashMap.Add("key3", false)
-	testHashMap.Add("key4", "hello world")
+	testHashMap := CreateHashMap()
+	if testHashMap.Add("key1", 42) {
+		fmt.Println("for the key key1 42 is added as value ")
+	}
+	// if testHashMap.Add("key1", "hello world 2") {
+	// 	fmt.Println(" for the key1 hello world 2 is added as value ")
+	// }
+
+	//testHashMap.Add("key2", 5.67)
+	//testHashMap.Add("key3", false)
+	testHashMap.Add("key2", "hello world")
 
 	flag, value := testHashMap.Get("key1")
 	if flag {
 		fmt.Println(" value of key1 ", value)
+
 	}
 	flag, value = testHashMap.Get("key2")
 	if flag {
-		fmt.Println(" value of key1 ", value)
+		fmt.Println(" value of key2 ", value)
 	}
 
 	flag, value = testHashMap.Get("fail")
