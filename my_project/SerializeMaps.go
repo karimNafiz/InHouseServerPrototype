@@ -2,8 +2,8 @@ package main
 
 import (
 	"encoding/binary"
-	"fmt"
 	"math"
+	"my_project/in_house_hash_map"
 	"unsafe"
 )
 
@@ -76,15 +76,16 @@ func AppendIntBytesMain(byteSlice *[]byte, value []byte, intSize uint8) {
 }
 
 // Main function to test the implementation
-func main1() {
-	msg := NewCustomMessage()
+func main() {
+	// msg := NewCustomMessage()
 
-	// Add key-value pairs
-	msg.Add("hellosssss", 42)
-	msg.Add("world", 100)
+	// // Add key-value pairs
+	// msg.Add("hellosssss", 42)
+	// msg.Add("world", 100)
 
-	// Print the stored bytes
-	fmt.Println("Key Lengths:", msg.keyLengths)     // Should be [5, 5]
-	fmt.Println("Key Bytes:", string(msg.keyBytes)) // Should be "helloworld"
-	fmt.Println("Value Bytes:", msg.valueBytes)     // Should contain encoded 42 and 100 in big-endian format
+	// // Print the stored bytes
+	// fmt.Println("Key Lengths:", msg.keyLengths)     // Should be [5, 5]
+	// fmt.Println("Key Bytes:", string(msg.keyBytes)) // Should be "helloworld"
+	// fmt.Println("Value Bytes:", msg.valueBytes)     // Should contain encoded 42 and 100 in big-endian format
+	in_house_hash_map.Getway()
 }

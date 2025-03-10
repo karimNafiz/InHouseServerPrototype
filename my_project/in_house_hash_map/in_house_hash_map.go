@@ -1,6 +1,7 @@
 package in_house_hash_map
 
 import (
+	"fmt"
 	"hash/fnv"
 	"my_project/in_house_linked_list"
 )
@@ -84,4 +85,30 @@ func GetHash(key string, cap int) int {
 	h := fnv.New32a()
 	h.Write([]byte(key))
 	return int(h.Sum32()) % cap
+}
+
+func Getway() {
+	testHashMap := CreateHashMap[interface{}]()
+	testHashMap.Add("key1", 42)
+	testHashMap.Add("key1", "hello world 2")
+	testHashMap.Add("key2", 5.67)
+	testHashMap.Add("key3", false)
+	testHashMap.Add("key4", "hello world")
+
+	flag, value := testHashMap.Get("key1")
+	if flag {
+		fmt.Println(" value of key1 ", value)
+	}
+	flag, value = testHashMap.Get("key2")
+	if flag {
+		fmt.Println(" value of key1 ", value)
+	}
+
+	flag, value = testHashMap.Get("fail")
+	if flag {
+		fmt.Println(" value of key1 ", value)
+	} else {
+		fmt.Println("fail case:")
+	}
+
 }
