@@ -84,32 +84,41 @@ func GetHash(key string, cap int) int {
 
 func Getway() {
 	testHashMap := CreateHashMap()
-	if testHashMap.Add("key1", 42) {
-		fmt.Println("for the key key1 42 is added as value ")
-	}
-	// if testHashMap.Add("key1", "hello world 2") {
-	// 	fmt.Println(" for the key1 hello world 2 is added as value ")
-	// }
 
-	//testHashMap.Add("key2", 5.67)
-	//testHashMap.Add("key3", false)
+	testHashMap.Add("key1", 42)
 	testHashMap.Add("key2", "hello world")
+	testHashMap.Add("key3", 150)
+	testHashMap.Add("key4", "value for key 4")
 
-	flag, value := testHashMap.Get("key1")
-	if flag {
-		fmt.Println(" value of key1 ", value)
+	byteStream := SerializeHashMap(testHashMap)
+	fmt.Println("hopefully this works")
+	fmt.Println(byteStream)
 
-	}
-	flag, value = testHashMap.Get("key2")
-	if flag {
-		fmt.Println(" value of key2 ", value)
-	}
+}
+func (hashMap *HashMap) Serialize(byteArray *[]byte) {
+	// Loop through all linked lists (buckets in the hashmap)
+	for i := 0; i < hashMap.capacity; i++ {
+		current := hashMap.hashMap[i].Head.Next // Start from the first real node
 
-	flag, value = testHashMap.Get("fail")
-	if flag {
-		fmt.Println(" value of key1 ", value)
-	} else {
-		fmt.Println("fail case:")
+		// Iterate through the linked list and serialize each KeyValPair
+		for current != hashMap.hashMap[i].Tail {
+			current.Value.Serialize(byteArray) // Serialize KeyValPair
+			current = current.Next
+		}
 	}
+}
+
+// design coice im choosing to send a hashmap pointer
+// even toh the hashMap struct is not very big
+// as most of the linkedList is stored in the heap
+func SerializeHashMap(hashMap *HashMap) []byte {
+	// initial size 16
+	// later do some math to find out the best length
+	byteStream := make([]byte, 0)
+	fmt.Println("before serialization ")
+	fmt.Println(byteStream)
+	hashMap.Serialize(&byteStream)
+
+	return byteStream
 
 }
