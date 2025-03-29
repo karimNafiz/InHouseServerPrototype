@@ -8,6 +8,8 @@ import (
 
 const Int32ByteLen = 4
 const Int32ValueType = 0
+const Float32ValueType = 1
+const Float32ByteLen = 4
 const StringValueType = 2
 
 type Serializable interface {
@@ -19,14 +21,44 @@ type MetaData struct {
 	MetaData [2]uint8
 }
 
-type Integer32 struct {
-	Value    int
-	MetaData MetaData
-}
-
 func create_meta_data(value_type uint8, byte_len uint8) MetaData {
 	metaDataArray := [2]uint8{value_type, byte_len}
 	return MetaData{MetaData: metaDataArray}
+}
+
+// type List struct{
+// 	Values
+// 	MetaData MetaData
+
+// }
+
+type Flt32 struct {
+	Value    float32
+	MetaData MetaData
+}
+
+func Float32(value float32) Flt32 {
+	return Flt32{
+		Value:    value,
+		MetaData: create_meta_data(Float32ValueType, Float32ByteLen),
+	}
+}
+
+func (wrapper Flt32) Serialize(byteArr *[]byte) {
+	var tempArr [4]byte
+	var uint32Representation uint32 = math.Float32bits(wrapper.Value)
+	binary.BigEndian.PutUint32(tempArr[:], uint32Representation)
+	*byteArr = append(*byteArr, wrapper.MetaData.MetaData[:]...)
+	*byteArr = append(*byteArr, tempArr[:]...)
+}
+
+func (wrapper Flt32) GetValue() any {
+	return wrapper.Value
+}
+
+type Integer32 struct {
+	Value    int
+	MetaData MetaData
 }
 
 func Int32(value int) Integer32 {
@@ -94,12 +126,14 @@ func (wrapper KeyValPair) GetValue() any {
 
 func CreateSerializableType(value any) (bool, Serializable) {
 	switch v := value.(type) {
+	case float32:
+		return true, Float32(v)
 	case string:
 		return true, String(v)
 	case int:
 		return true, Int32(v)
 	default:
 		fmt.Println("Unsupported type")
-		return false, nil // ✅ Explicitly return nil
+		return false, nil
 	}
 }

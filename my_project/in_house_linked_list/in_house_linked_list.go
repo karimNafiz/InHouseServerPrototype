@@ -71,8 +71,8 @@ func (linkedList *LinkedList[T]) Delete(node *Node[T]) {
 // Remove and return the Value at the Head
 func (linkedList *LinkedList[T]) PopHead() (T, bool) {
 	if linkedList.IsEmpty() {
-		var zeroValue T
-		return zeroValue, false
+		var zero_value T
+		return zero_value, false
 	}
 	node := linkedList.Head.Next
 	linkedList.Delete(node)
@@ -82,8 +82,8 @@ func (linkedList *LinkedList[T]) PopHead() (T, bool) {
 // Remove and return the Value at the Tail
 func (linkedList *LinkedList[T]) PopTail() (T, bool) {
 	if linkedList.IsEmpty() {
-		var zeroValue T
-		return zeroValue, false
+		var zero_value T
+		return zero_value, false
 	}
 	node := linkedList.Tail.Prev
 	linkedList.Delete(node)
@@ -93,8 +93,8 @@ func (linkedList *LinkedList[T]) PopTail() (T, bool) {
 // Peek at the Value at the Head without removing it
 func (linkedList *LinkedList[T]) PeekHead() (T, bool) {
 	if linkedList.IsEmpty() {
-		var zeroValue T
-		return zeroValue, false
+		var zero_value T
+		return zero_value, false
 	}
 	return linkedList.Head.Next.Value, true
 }
@@ -102,14 +102,32 @@ func (linkedList *LinkedList[T]) PeekHead() (T, bool) {
 // Peek at the Value at the Tail without removing it
 func (linkedList *LinkedList[T]) PeekTail() (T, bool) {
 	if linkedList.IsEmpty() {
-		var zeroValue T
-		return zeroValue, false
+		var zero_value T
+		return zero_value, false
 	}
 	return linkedList.Tail.Prev.Value, true
 }
 
 func (linkedList *LinkedList[T]) GetLength() int {
 	return linkedList.len
+}
+
+func (linkedList *LinkedList[T]) GetIndex(index int) (T, bool) {
+	var zero_value T
+	if linkedList.IsEmpty() || linkedList.GetLength() <= index {
+		return zero_value, false
+	}
+	current := linkedList.Head.Next
+	element_index := 0
+	for current != linkedList.Tail {
+		if index == element_index {
+			return current.Value, true
+		}
+		element_index++
+		current = current.Next
+	}
+	return zero_value, false
+
 }
 
 // Print the linked list for debugging
