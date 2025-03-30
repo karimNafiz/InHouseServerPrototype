@@ -75,14 +75,15 @@ func GetHash(key string, cap int) int {
 }
 
 func Getway() {
+	//fmt.Println("value of casted float32 ", float32(42.123))
 	testHashMap := CreateHashMap()
-
-	testHashMap.Add("key1", 42)
-	testHashMap.Add("key2", "hello world")
-	testHashMap.Add("key3", 150)
-	testHashMap.Add("key4", "value for key 4")
-	testHashMap.Add("key5", 34.12)
-	testHashMap.Add("key6", []any{"crack", 14, 34.12})
+	// testHashMap.Add("key1", 42)
+	// testHashMap.Add("key2", float32(42.123))
+	// testHashMap.Add("key2", "hello world")
+	// testHashMap.Add("key3", 150)
+	// testHashMap.Add("key4", "value for key 4")
+	// testHashMap.Add("key5", 34.12)
+	testHashMap.Add("key6", []any{"crack", 14, float32(34.12)})
 
 	byteStream := SerializeHashMap(testHashMap)
 	fmt.Println("hopefully this works")
