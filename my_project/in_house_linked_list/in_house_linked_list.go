@@ -130,6 +130,20 @@ func (linkedList *LinkedList[T]) GetIndex(index int) (T, bool) {
 
 }
 
+func (linkedList *LinkedList[T]) ForEach(action func(T)) {
+	forEach(linkedList.Head.Next, linkedList.Tail, action)
+
+}
+
+func forEach[T any](node *Node[T], tail *Node[T], action func(T)) {
+	if node == tail {
+		return
+	}
+	action(node.Value)
+	forEach(node.Next, tail, action)
+
+}
+
 // Print the linked list for debugging
 func (linkedList *LinkedList[T]) Print() {
 	current := linkedList.Head.Next

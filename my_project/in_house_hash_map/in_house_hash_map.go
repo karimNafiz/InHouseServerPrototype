@@ -28,16 +28,12 @@ func CreateHashMap() *HashMap {
 }
 
 func (hashMap *HashMap) Add(key string, value any) bool {
-	var key_str serializable.Str = serializable.String(key) // we know key is a string so we directly create the wrapper type Str
-	ok, val_serializable := serializable.CreateSerializableType(value)
+	hash := GetHash(key, hashMap.capacity)
+	ok, keyValPair := serializable.CreateKeyValPair(key, value)
 	if !ok {
-		return false
+		return ok
 	}
-	hash := GetHashStr(key_str, hashMap.capacity)
-	hashMap.hashMap[hash].AppendHead(serializable.KeyValPair{
-		Key:   key_str,
-		Value: val_serializable,
-	})
+	hashMap.hashMap[hash].AppendHead(keyValPair)
 	return true
 }
 
@@ -52,7 +48,7 @@ func (hashMap *HashMap) Get(key string) (bool, any) {
 	found, keyValPair := get_element_linked_list(hashMap.hashMap[hash], key)
 
 	if found {
-		return true, keyValPair.Value.GetValue()
+		return true, keyValPair.Getvalue()
 	}
 
 	return false, keyValPair
@@ -62,7 +58,7 @@ func get_element_linked_list(linkedList in_house_linked_list.LinkedList[serializ
 	current := linkedList.Head.Next
 
 	for current != linkedList.Tail {
-		if current.Value.Key.GetValue() == key { // must provide getters and setters remember to implement those changes
+		if current.Value.GetKey() == key { // must provide getters and setters remember to implement those changes
 			return true, current.Value
 		}
 		current = current.Next
@@ -70,10 +66,6 @@ func get_element_linked_list(linkedList in_house_linked_list.LinkedList[serializ
 
 	var zero_value serializable.KeyValPair
 	return false, zero_value
-}
-
-func GetHashStr(key serializable.Str, cap int) int {
-	return GetHash(key.Value, cap)
 }
 
 func GetHash(key string, cap int) int {
@@ -89,6 +81,8 @@ func Getway() {
 	testHashMap.Add("key2", "hello world")
 	testHashMap.Add("key3", 150)
 	testHashMap.Add("key4", "value for key 4")
+	testHashMap.Add("key5", 34.12)
+	testHashMap.Add("key6", []any{"crack", 14, 34.12})
 
 	byteStream := SerializeHashMap(testHashMap)
 	fmt.Println("hopefully this works")
