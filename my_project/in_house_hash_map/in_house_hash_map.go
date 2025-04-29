@@ -3,6 +3,7 @@ package in_house_hash_map
 import (
 	"fmt"
 	"hash/fnv"
+
 	"my_project/in_house_linked_list"
 	serializable "my_project/in_house_serializable"
 )
@@ -71,7 +72,9 @@ func get_element_linked_list(linkedList in_house_linked_list.LinkedList[serializ
 func GetHash(key string, cap int) int {
 	h := fnv.New32a()
 	h.Write([]byte(key))
-	return int(h.Sum32()) % cap
+	// do mod in uint32-space so it's always between 0 and cap-1
+	rem := h.Sum32() % uint32(cap)
+	return int(rem)
 }
 
 func Getway() {
@@ -83,11 +86,12 @@ func Getway() {
 	// testHashMap.Add("key3", 150)
 	// testHashMap.Add("key4", "value for key 4")
 	// testHashMap.Add("key5", 34.12)
-	testHashMap.Add("key6", []any{"crack", 14, float32(34.12)})
+	testHashMap.Add("key1", "HelloWorld")
 
 	byteStream := SerializeHashMap(testHashMap)
 	fmt.Println("hopefully this works")
 	fmt.Println(byteStream)
+	//de_serializer.DeSerialize(&byteStream)
 
 }
 func (hashMap *HashMap) Serialize(byteArray *[]byte) {
@@ -110,8 +114,7 @@ func SerializeHashMap(hashMap *HashMap) []byte {
 	// initial size 16
 	// later do some math to find out the best length
 	byteStream := make([]byte, 0)
-	fmt.Println("before serialization ")
-	fmt.Println(byteStream)
+
 	hashMap.Serialize(&byteStream)
 
 	return byteStream
