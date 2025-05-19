@@ -33,6 +33,13 @@ func (b *Buffer) Add(data []byte) int {
 	return toCopy
 }
 
+func (b *Buffer) IsFull() bool {
+	return b.lastByteIndex == b.bufferCapacity
+}
+func (b *Buffer) IsEmpty() bool {
+	return b.lastByteIndex == 0
+}
+
 func (b *Buffer) Bytes() []byte {
 	return b.buffer[:b.lastByteIndex]
 }
@@ -40,3 +47,12 @@ func (b *Buffer) Bytes() []byte {
 func (b *Buffer) Reset() {
 	b.lastByteIndex = 0
 }
+
+func (b *Buffer) GetCapacity() int {
+	return b.bufferCapacity
+}
+
+func (b *Buffer) GetTotalBytes() int {
+	return b.lastByteIndex
+}
+
