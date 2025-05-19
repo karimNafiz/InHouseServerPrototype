@@ -2,7 +2,6 @@ package buffered_writer
 
 import (
 	buffer "my_project/folder1/buffer"
-	utility "my_project/utility"
 	"net"
 )
 
@@ -16,48 +15,92 @@ type BufferedWriter struct {
 	ioConn net.Conn
 }
 
+// Write buffers data and flushes to the connection when necessary.
+// It returns the total number of bytes accepted (either buffered or sent)
+// and any error encountered during flushing or direct writes.
 func (bWriter *BufferedWriter) Write(bytes []byte) (int, error) {
+	// Track total bytes successfully handled
+	totalWritten := 0
 
-	// lenBytes represent the total no of bytes we need to add to the buffer
+	// Incoming payload length and buffer capacity
 	lenBytes := len(bytes)
+	bufCap := bWriter.buffer.GetCapacity()
 
-	// available represents the total space in no of bytes available in the buffer
+	// Compute current free space in buffer
 	available := bWriter.getAvailableSpaceInBuffer()
 
-	// start index (for the slice bytes) for the data to be added to the buffer
-	start := 0
-	// end index (for the slice bytes) for the data to be added to the buffer
-	end := utility.MinInt(start+bWriter.buffer.GetCapacity(), lenBytes)
+	// ----- Case 1: Entire payload fits in existing buffer -----
+	if lenBytes <= available {
+		// Add all data to buffer
+		n := bWriter.buffer.Add(bytes)
+		totalWritten += n
 
-	// if there is no space for the incoming byte slice
-	// we need to flush whats previously stored in the buffer
-	// as we need to send bytes over the IO connection as a whole
-	// we can't have a scenario where we send x percent of a message in one Write function and send y percent of that message in another write function; (x + y) = 100
-	if lenBytes > available && !bWriter.buffer.IsEmpty() {
-		_, err := bWriter.flush()
-	} else { // if we do have space we add it to the buffer
-		// if the buffer becomes full we need to flush too
-		n := bWriter.buffer.Add(bytes[start:end])
+		// If buffer is now full, flush its contents
 		if bWriter.buffer.IsFull() {
-			_, err := bWriter.flush()
+			// if there is an error with the flush
+			// we will return totalWritten which could be zero or the bytes added
+			if err := bWriter.flush(); err != nil {
+				return totalWritten, err
+			}
 		}
-		return n, nil
+		return totalWritten, nil
 	}
 
-	//
+	// ----- Case 2: Payload too large for current buffer space -----
+	// Flush any existing buffered data first
+	if !bWriter.buffer.IsEmpty() {
+		if err := bWriter.flush(); err != nil {
+			return totalWritten, err
+		}
+	}
 
-	for start < end {
+	// Recompute available space after flush
+	available = bWriter.getAvailableSpaceInBuffer()
+
+	// ----- Case 2a: After flush, payload now fits entirely -----
+	if lenBytes <= available {
+		n := bWriter.buffer.Add(bytes)
+		totalWritten += n
+
+		// If buffer is now full, flush its contents
+		if bWriter.buffer.IsFull() {
+			// if there is an error with the flush
+			// we will return totalWritten which could be zero or the bytes added
+			if err := bWriter.flush(); err != nil {
+				return totalWritten, err
+			}
+		}
+
+		return totalWritten, nil
+	}
+
+	// ----- Case 2b: Payload still larger than buffer capacity -----
+	// Break payload into buffer-sized chunks, buffer each, then flush
+	start := 0
+	for start < lenBytes {
+		// Determine chunk boundaries
+		end := start + bufCap
+		if end > lenBytes {
+			end = lenBytes
+		}
+
+		// Buffer this chunk (Add returns actual bytes added)
 		n := bWriter.buffer.Add(bytes[start:end])
-		_, err := bWriter.flush()
+		totalWritten += n
+
+		// Flush the buffered chunk to the connection
+		if err := bWriter.flush(); err != nil {
+			return totalWritten, err
+		}
+
+		// Advance past the chunk we just wrote
 		start += n
-		end = utility.MinInt(start+bWriter.buffer.GetCapacity(), lenBytes)
-		available = bWriter.getAvailableSpaceInBuffer()
 	}
 
+	return totalWritten, nil
 }
-
-func (bWriter *BufferedWriter) flush() (int, error) {
-
+func (bWriter *BufferedWriter) flush() error {
+	// if buffer is empty we will return a error
 }
 
 func (bWriter *BufferedWriter) getAvailableSpaceInBuffer() int {
